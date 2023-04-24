@@ -1,13 +1,31 @@
 import styled from "styled-components"
 import { BiExit } from "react-icons/bi"
 import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai"
+import { useEffect } from "react"
+import useAuthorization from "../hooks/useAuthorization"
+import { Link, useNavigate } from "react-router-dom"
 
 export default function HomePage() {
+
+  const { authorization, login } = useAuthorization()
+  const navigate = useNavigate()
+
+  useEffect(()=>{
+    if(!authorization.token){
+      return navigate("/")
+    }
+  },[])
+
+  function logout(){
+    login("")
+    navigate("/")
+  }
+
   return (
     <HomeContainer>
       <Header>
-        <h1>Olá, Fulano</h1>
-        <BiExit />
+        <h1>Olá, {authorization.name}</h1>
+        <BiExit onClick={logout}></BiExit>
       </Header>
 
       <TransactionsContainer>
