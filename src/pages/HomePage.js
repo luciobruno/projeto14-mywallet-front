@@ -1,22 +1,66 @@
 import styled from "styled-components"
 import { BiExit } from "react-icons/bi"
 import { AiOutlineMinusCircle, AiOutlinePlusCircle } from "react-icons/ai"
-import { useEffect } from "react"
+import { useEffect, useState } from "react"
 import useAuthorization from "../hooks/useAuthorization"
-import { Link, useNavigate } from "react-router-dom"
+import { useNavigate } from "react-router-dom"
+import axios from "axios"
+import ListItem from "../components/ListItem"
+import Balance from "../components/Balance"
 
 export default function HomePage() {
 
   const { authorization, login } = useAuthorization()
   const navigate = useNavigate()
+  const [dados, setDados] = useState([])
+  const [balance, setBalance] = useState("")
+  const [positive, setPositive] = useState("positive")
 
-  useEffect(()=>{
-    if(!authorization.token){
+  useEffect(() => {
+    if (!authorization.token) {
       return navigate("/")
     }
-  },[])
 
-  function logout(){
+    const url = `${process.env.REACT_APP_API_URL}/transactions`
+
+    const config = {
+      headers: {
+        "Authorization": `Bearer ${authorization.token}`
+      }
+    }
+
+    const promisse = axios.get(url, config)
+
+    promisse.then((res) => {
+      setDados(res.data)
+      let valor = 0
+      dados.map((dado)=>{
+        if(dado.type === "input"){
+          valor = valor+dado.value
+        }else{
+          valor = valor-dado.value
+        }
+      })
+
+      setPositive("true")
+
+      if(valor<0){
+        valor=valor*(-1)
+        setPositive("false")
+      }
+      setBalance(valor)
+    })
+    promisse.catch((err) => {
+      console.log(err.response.data)
+    })
+
+  }, [dados])
+
+  function newTransaction(type) {
+    navigate(`/nova-transacao/${type}`)
+  }
+
+  function logout() {
     login("")
     navigate("/")
   }
@@ -30,36 +74,18 @@ export default function HomePage() {
 
       <TransactionsContainer>
         <ul>
-          <ListItemContainer>
-            <div>
-              <span>30/11</span>
-              <strong>Almoço mãe</strong>
-            </div>
-            <Value color={"negativo"}>120,00</Value>
-          </ListItemContainer>
-
-          <ListItemContainer>
-            <div>
-              <span>15/11</span>
-              <strong>Salário</strong>
-            </div>
-            <Value color={"positivo"}>3000,00</Value>
-          </ListItemContainer>
+          {dados.map((dado, index) => <ListItem key={index} date={dado.date} value={dado.value} description={dado.description} type={dado.type}></ListItem>)}
         </ul>
 
-        <article>
-          <strong>Saldo</strong>
-          <Value color={"positivo"}>2880,00</Value>
-        </article>
+        <Balance balance={balance} positive={positive}></Balance>
       </TransactionsContainer>
 
-
       <ButtonsContainer>
-        <button>
+        <button onClick={() => { newTransaction("input") }}>
           <AiOutlinePlusCircle />
           <p>Nova <br /> entrada</p>
         </button>
-        <button>
+        <button onClick={() => { newTransaction("output") }}>
           <AiOutlineMinusCircle />
           <p>Nova <br />saída</p>
         </button>
@@ -120,20 +146,9 @@ const ButtonsContainer = styled.section`
     }
   }
 `
+
 const Value = styled.div`
   font-size: 16px;
   text-align: right;
   color: ${(props) => (props.color === "positivo" ? "green" : "red")};
-`
-const ListItemContainer = styled.li`
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 8px;
-  color: #000000;
-  margin-right: 10px;
-  div span {
-    color: #c6c6c6;
-    margin-right: 10px;
-  }
 `

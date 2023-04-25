@@ -30,7 +30,7 @@ export default function SignInPage() {
       navigate("/home")
     })
     promisse.catch((err) => {
-      console.log(err.message)
+      alert("Todos os campos são obrigatórios")
     })
 
   }
