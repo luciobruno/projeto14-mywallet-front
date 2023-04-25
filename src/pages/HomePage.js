@@ -34,18 +34,18 @@ export default function HomePage() {
     promisse.then((res) => {
       setDados(res.data)
       let valor = 0
-      dados.map((dado)=>{
-        if(dado.type === "input"){
-          valor = valor+dado.value
-        }else{
-          valor = valor-dado.value
+      dados.map((dado) => {
+        if (dado.type === "input") {
+          valor = valor + dado.value
+        } else {
+          valor = valor - dado.value
         }
       })
 
       setPositive("true")
 
-      if(valor<0){
-        valor=valor*(-1)
+      if (valor < 0) {
+        valor = valor * (-1)
         setPositive("false")
       }
       setBalance(valor)
@@ -76,9 +76,11 @@ export default function HomePage() {
         <ul>
           {dados.map((dado, index) => <ListItem key={index} date={dado.date} value={dado.value} description={dado.description} type={dado.type}></ListItem>)}
         </ul>
-
+        {dados.length === 0 ? <TransactionsMessage>Não há registros de
+        entrada ou saída</TransactionsMessage> : ""}
         <Balance balance={balance} positive={positive}></Balance>
       </TransactionsContainer>
+
 
       <ButtonsContainer>
         <button onClick={() => { newTransaction("input") }}>
@@ -147,8 +149,14 @@ const ButtonsContainer = styled.section`
   }
 `
 
-const Value = styled.div`
-  font-size: 16px;
-  text-align: right;
-  color: ${(props) => (props.color === "positivo" ? "green" : "red")};
+const TransactionsMessage = styled.div`
+  display:flex;
+  heigth:46px;
+  justify-content:center;
+  font-family: 'Raleway';
+  font-style: normal;
+  font-weight: 400;
+  font-size: 20px;
+  line-height: 23px;
+  text-align: center;
 `
